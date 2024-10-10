@@ -74,29 +74,44 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   const msg = message.content.toLowerCase();
+  console.log(msg);
 
   if (msg.startsWith("/cheer")) {
     const quote = await getQuote();
     await message.channel.send(quote);
   }
 
-  const isResponding = await db
-    .collection("settings")
-    .findOne({ key: "responding" });
-  if (isResponding && isResponding.value) {
-    const dbEncouragements = await db
-      .collection("encouragements")
-      .find()
-      .toArray();
-    const options = [
-      ...starterEncouragements,
-      ...dbEncouragements.map((e) => e.message),
-    ];
+  const dbEncouragements = await db
+    .collection("encouragements")
+    .find()
+    .toArray();
+  const options = [
+    ...starterEncouragements,
+    ...dbEncouragements.map((e) => e.message),
+  ];
+  console.log(options);
 
-    if (sadWords.some((word) => msg.includes(word))) {
-      await message.channel.send(
-        options[Math.floor(Math.random() * options.length)]
-      );
+  const hasSadWord = sadWords.some((word) => msg.includes(word));
+  console.log(hasSadWord);
+  console.log(`Message contains sad word: ${hasSadWord}`); // Log if a sad word is detected
+
+  if (hasSadWord) {
+    if (options.length === 0) {
+      console.log("No encouragement messages available to send."); // Log if no messages are available
+      return;
+    }
+
+    // Select a random encouragement message
+    const randomIndex = Math.floor(Math.random() * options.length);
+    const response = options[randomIndex];
+    console.log(`Selected encouragement message: "${response}"`); // Log the selected message
+
+    // Attempt to send the message
+    try {
+      await message.channel.send(response);
+      console.log("Encouragement message sent successfully."); // Confirm successful send
+    } catch (error) {
+      console.error("Error sending encouragement message:", error); // Log any errors during send
     }
   }
 
@@ -118,9 +133,7 @@ client.on("messageCreate", async (message) => {
         .collection("encouragements")
         .find()
         .toArray();
-      await message.channel.send(
-        JSON.stringify(encouragements.map((e) => e.message))
-      );
+      await message.channel.send(encouragements);
     } else {
       await message.channel.send("Please provide a valid index to delete.");
     }
