@@ -171,6 +171,7 @@ async function startBot() {
 
     client.once("ready", () => {
       console.log(`Logged in as ${client.user.tag}`);
+      client.user.setActivity(" how you mood changes!", { type: "WATCHING" });
     });
 
     client.login(process.env.DISCORD_TOKEN);
